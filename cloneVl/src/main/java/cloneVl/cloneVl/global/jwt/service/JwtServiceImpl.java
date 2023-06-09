@@ -1,20 +1,18 @@
-package cloneVl.cloneVl.global.jwt;
+package cloneVl.cloneVl.global.jwt.service;
 
 import cloneVl.cloneVl.domain.member.repository.MemberRepository;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +22,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Setter(value = AccessLevel.PRIVATE)
-public class JwtServiceImpl implements JwtService{
+@Slf4j
+public class JwtServiceImpl implements JwtService {
 
-    //== 1 ==//
     @Value("${jwt.secret}")
     private String secret;
     @Value("${jwt.access.expiration}")
@@ -39,8 +37,6 @@ public class JwtServiceImpl implements JwtService{
     private String refreshHeader;
 
 
-
-    //== 2 ==//
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String USERNAME_CLAIM = "username";
@@ -48,12 +44,8 @@ public class JwtServiceImpl implements JwtService{
 
 
     private final MemberRepository memberRepository;
-    private final ObjectMapper objectMapper;
 
 
-
-
-    //== 3 ==//
     @Override
     public String createAccessToken(String username) {
         return JWT.create()
@@ -81,7 +73,6 @@ public class JwtServiceImpl implements JwtService{
     }
 
 
-
     @Override
     public void destroyRefreshToken(String username) {
         memberRepository.findByUsername(username)
@@ -91,10 +82,8 @@ public class JwtServiceImpl implements JwtService{
                 );
     }
 
-    //== 5 ==//
     @Override
-    public void sendToken(HttpServletResponse response, String accessToken, String refreshToken) throws IOException {
-        response.setContentType("application/json;charset=UTF-8");
+    public void sendAccessAndRefreshToken(HttpServletResponse response, String accessToken, String refreshToken) {
         response.setStatus(HttpServletResponse.SC_OK);
 
         setAccessTokenHeader(response, accessToken);
@@ -105,27 +94,46 @@ public class JwtServiceImpl implements JwtService{
         tokenMap.put(ACCESS_TOKEN_SUBJECT, accessToken);
         tokenMap.put(REFRESH_TOKEN_SUBJECT, refreshToken);
 
-        String token = objectMapper.writeValueAsString(tokenMap);
+    }
 
-        response.getWriter().write(token);
+    @Override
+    public void sendAccessToken(HttpServletResponse response, String accessToken) {
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        setAccessTokenHeader(response, accessToken);
+
+
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put(ACCESS_TOKEN_SUBJECT, accessToken);
     }
 
 
     @Override
-    public String extractAccessToken(HttpServletRequest request) throws IOException, ServletException {
-        return Optional.ofNullable(request.getHeader(accessHeader)).map(accessToken -> accessToken.replace(BEARER, "")).orElse(null);
+    public Optional<String> extractAccessToken(HttpServletRequest request) {
+        return Optional.ofNullable(request.getHeader(accessHeader)).filter(
+
+                accessToken -> accessToken.startsWith(BEARER)
+
+        ).map(accessToken -> accessToken.replace(BEARER, ""));
     }
 
     @Override
-    public String extractRefreshToken(HttpServletRequest request) throws IOException, ServletException {
-        return Optional.ofNullable(request.getHeader(refreshHeader)).map(refreshToken -> refreshToken.replace(BEARER, "")).orElse(null);
+    public Optional<String> extractRefreshToken(HttpServletRequest request) {
+        return Optional.ofNullable(request.getHeader(refreshHeader)).filter(
+
+                refreshToken -> refreshToken.startsWith(BEARER)
+
+        ).map(refreshToken -> refreshToken.replace(BEARER, ""));
     }
 
-    //== 4 ==//
     @Override
-    public String extractUsername(String accessToken) {
-        return JWT.require(Algorithm.HMAC512(secret)).build().verify(accessToken).getClaim(USERNAME_CLAIM).asString();
-
+    public Optional<String> extractUsername(String accessToken) {
+        try {
+            return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secret)).build().verify(accessToken).getClaim(USERNAME_CLAIM).asString());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -136,5 +144,16 @@ public class JwtServiceImpl implements JwtService{
     @Override
     public void setRefreshTokenHeader(HttpServletResponse response, String refreshToken) {
         response.setHeader(refreshHeader, refreshToken);
+    }
+
+    @Override
+    public boolean isTokenValid(String token) {
+        try {
+            JWT.require(Algorithm.HMAC512(secret)).build().verify(token);
+            return true;
+        } catch (Exception e) {
+            log.error("유효하지 않은 Token입니다", e.getMessage());
+            return false;
+        }
     }
 }
