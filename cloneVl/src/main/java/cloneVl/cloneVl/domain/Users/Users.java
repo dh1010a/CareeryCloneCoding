@@ -1,5 +1,6 @@
-package cloneVl.cloneVl.domain.User;
+package cloneVl.cloneVl.domain.Users;
 
+import cloneVl.cloneVl.domain.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -7,10 +8,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Entity
 @Builder
 @AllArgsConstructor
-@Table(name = "USER")
+@Table(name = "USERS")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Users extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +19,7 @@ public class User {
     private Long id; //PK
 
     @Column(nullable = false, length = 30, unique = true)
-    private String username;//아이디
+    private String userName;//아이디
 
     private String password;
 
