@@ -3,7 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.0.5'
 	id 'io.spring.dependency-management' version '1.1.0'
 }
-
+apply plugin: 'java'
 group = 'cloneVl'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
@@ -23,7 +23,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'junit:junit:4.13.1'
 	implementation 'junit:junit:4.13.1'
 	compileOnly 'org.projectlombok:lombok'
 	implementation 'com.auth0:java-jwt:3.18.2'

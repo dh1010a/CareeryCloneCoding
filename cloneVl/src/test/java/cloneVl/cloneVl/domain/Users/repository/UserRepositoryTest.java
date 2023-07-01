@@ -2,7 +2,7 @@ package cloneVl.cloneVl.domain.Users.repository;
 
 import cloneVl.cloneVl.domain.Users.Users;
 import jakarta.persistence.EntityManager;
-import org.apache.catalina.User;
+import jakarta.persistence.EntityTransaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +42,7 @@ class UserRepositoryTest {
         Users findUser = usersRepository.findById(saveUser.getId()).orElseThrow(() -> new RuntimeException("저장된 회원이 없습니다"));
         assertThat(findUser).isSameAs(saveUser);
         assertThat(findUser).isSameAs(users);
+
     }
 
     @Test
