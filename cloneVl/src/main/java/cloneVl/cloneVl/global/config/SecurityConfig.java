@@ -23,8 +23,10 @@ public class SecurityConfig{
                 .permitAll()
                 .anyRequest().authenticated();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder(){
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
 }
