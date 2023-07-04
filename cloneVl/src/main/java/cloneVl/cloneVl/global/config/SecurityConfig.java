@@ -6,12 +6,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig{
 
     @Bean
-    protected void configure(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
                 .formLogin().disable() // formLogin 인증 비활성화
                 .httpBasic().disable() // httpBasic 인증 비활성화
@@ -22,6 +23,8 @@ public class SecurityConfig{
                 .authorizeHttpRequests().requestMatchers("/login","/signUp","/")
                 .permitAll()
                 .anyRequest().authenticated();
+        return http.build();
+
     }
 
     @Bean
