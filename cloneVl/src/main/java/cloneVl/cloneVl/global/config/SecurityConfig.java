@@ -1,6 +1,7 @@
 package cloneVl.cloneVl.global.config;
 
 import cloneVl.cloneVl.global.login.filter.JsonUsernamePasswordAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +17,8 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 @Configuration
 public class SecurityConfig{
 
+    //private final LoginService loginService;
+    ObjectMapper objectMapper;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
